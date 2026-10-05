@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="font-size: 1.8rem; font-weight: 800;">Customer Orders</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Persisted and queried from <strong>VM3 Order Microservice Mini-DB</strong></p>
+  </div>
+  <a href="{{ url_for('storefront') }}" class="btn btn-primary">+ Place New Order</a>
+</div>
+
+{% if error_msg %}
+  <div class="alert alert-danger">
+    <strong>Microservice Error:</strong> {{ error_msg }}
+  </div>
+{% endif %}
+
+<div class="table-card">
+  {% if orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Product Name</th>
+          <th>Qty</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Payment Ref (VM4 Sync)</th>
+          <th>Date (UTC)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td><strong>#{{ o.id }}</strong></td>
+            <td>
+              <div>{{ o.customer_name }}</div>
+              <small style="color: var(--text-muted);">{{ o.customer_email }}</small>
+            </td>
+            <td>{{ o.product_name }}</td>
+            <td>{{ o.quantity }}</td>
+            <td><strong>${{ "%.2f"|format(o.total_amount) }}</strong></td>
+            <td>
+              <span class="status-badge status-{{ o.status|lower }}">{{ o.status }}</span>
+            </td>
+            <td><code>{{ o.payment_ref or 'N/A' }}</code></td>
+            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ o.created_at }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div style="text-align: center; padding: 3rem;">
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">No orders placed yet.</p>
+      <a href="{{ url_for('storefront') }}" class="btn btn-primary">Browse Products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

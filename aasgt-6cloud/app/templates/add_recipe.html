@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Food Recipe - RecipeCloud{% endblock %}
+
+{% block content %}
+<div class="form-container">
+  <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+    🍳 Add New Food Recipe
+  </h2>
+
+  <form action="{{ url_for('add_recipe') }}" method="POST">
+    <div class="form-group">
+      <label for="title">Recipe Title *</label>
+      <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Creamy Tuscan Garlic Shrimp" required>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="category">Category / Cuisine</label>
+        <input type="text" id="category" name="category" class="form-control" placeholder="e.g. Italian, Dinner, Breakfast" value="General">
+      </div>
+      <div class="form-group">
+        <label for="servings">Servings</label>
+        <input type="number" id="servings" name="servings" class="form-control" value="2" min="1">
+      </div>
+      <div class="form-group">
+        <label for="prep_time">Prep Time (mins)</label>
+        <input type="number" id="prep_time" name="prep_time" class="form-control" value="15" min="0">
+      </div>
+      <div class="form-group">
+        <label for="cook_time">Cook Time (mins)</label>
+        <input type="number" id="cook_time" name="cook_time" class="form-control" value="20" min="0">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="image_url">Image URL</label>
+      <input type="url" id="image_url" name="image_url" class="form-control" placeholder="https://example.com/food-photo.jpg (Optional)">
+    </div>
+
+    <div class="form-group">
+      <label for="ingredients">Ingredients (One per line) *</label>
+      <textarea id="ingredients" name="ingredients" class="form-control" rows="5" placeholder="• 2 tbsp Olive oil&#10;• 500g Fresh shrimp&#10;• 4 cloves garlic, minced&#10;• 1 cup baby spinach" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="instructions">Cooking Instructions *</label>
+      <textarea id="instructions" name="instructions" class="form-control" rows="6" placeholder="1. Heat oil in skillet over medium heat.&#10;2. Sauté garlic until fragrant.&#10;3. Add shrimp and cook 2 minutes per side..." required></textarea>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save Recipe to DB</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

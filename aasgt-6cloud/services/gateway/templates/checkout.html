@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 2rem;">
+  <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+    🛍️ Multi-Service Checkout & Order Sync
+  </h2>
+
+  <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+    <h4 style="color: var(--primary); margin-bottom: 0.25rem;">{{ product.name }}</h4>
+    <div style="font-size: 0.9rem; color: var(--text-muted);">
+      Price: <strong>${{ "%.2f"|format(product.price) }}</strong> &bull; Available in VM2 Catalog DB: <strong>{{ product.stock }} units</strong>
+    </div>
+  </div>
+
+  <form action="{{ url_for('place_order') }}" method="POST">
+    <input type="hidden" name="product_id" value="{{ product.id }}">
+    <input type="hidden" name="product_name" value="{{ product.name }}">
+    <input type="hidden" name="unit_price" value="{{ product.price }}">
+
+    <div style="margin-bottom: 1.2rem;">
+      <label style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem;">Customer Full Name</label>
+      <input type="text" name="customer_name" value="Adarsh Cloud Student" required style="width: 100%; padding: 0.75rem; background: #090d16; border: 1px solid var(--card-border); color: #fff; border-radius: var(--radius);">
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <label style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem;">Email Address</label>
+      <input type="email" name="customer_email" value="student@university.edu" required style="width: 100%; padding: 0.75rem; background: #090d16; border: 1px solid var(--card-border); color: #fff; border-radius: var(--radius);">
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem;">Quantity to Order</label>
+      <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" required style="width: 100%; padding: 0.75rem; background: #090d16; border: 1px solid var(--card-border); color: #fff; border-radius: var(--radius);">
+    </div>
+
+    <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid var(--accent); padding: 0.75rem; border-radius: var(--radius); margin-bottom: 1.5rem; font-size: 0.8rem; color: #cbd5e1;">
+      ℹ️ <strong>Synchronous Multi-DB Flow:</strong> Placing this order will atomically write to <strong>VM3 (Order DB)</strong>, trigger stock decrement in <strong>VM2 (Catalog DB)</strong>, and record the payment ledger in <strong>VM4 (Payment DB)</strong>.
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="{{ url_for('storefront') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Confirm & Place Order &rarr;</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

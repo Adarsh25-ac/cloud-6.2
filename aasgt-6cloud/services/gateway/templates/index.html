@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem;">
+  <div>
+    <h1 style="font-size: 1.8rem; font-weight: 800;">Featured Tech Products</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Catalog data served directly from <strong>VM2 Catalog Microservice Mini-DB</strong></p>
+  </div>
+  <a href="{{ url_for('topology') }}" class="btn btn-secondary">🔍 View Distributed Topology</a>
+</div>
+
+{% if error_msg %}
+  <div class="alert alert-danger">
+    <strong>Microservice Error:</strong> {{ error_msg }}
+  </div>
+{% endif %}
+
+{% if products %}
+  <div class="products-grid">
+    {% for product in products %}
+      <div class="product-card">
+        <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=600&q=80'">
+        <div class="product-body">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 0.4rem;">{{ product.category }}</span>
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; line-height: 1.3;">{{ product.name }}</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; flex: 1;">{{ product.description }}</p>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+            <div>
+              <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+              <div class="product-stock">Stock in VM2 DB: {{ product.stock }} units</div>
+            </div>
+            {% if product.stock > 0 %}
+              <a href="{{ url_for('checkout', product_id=product.id) }}" class="btn btn-primary">Buy Now</a>
+            {% else %}
+              <button class="btn btn-secondary" disabled>Out of Stock</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align: center; padding: 4rem; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border);">
+    <h3>No products available</h3>
+    <p style="color: var(--text-muted);">Ensure VM2 Catalog Microservice is active and healthy.</p>
+  </div>
+{% endif %}
+{% endblock %}

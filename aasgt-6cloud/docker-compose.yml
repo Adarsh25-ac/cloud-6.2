@@ -1,0 +1,90 @@
+services:
+  # ==========================================
+  # VM 1: Frontend Storefront & API Gateway
+  # ==========================================
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: ecom-gateway
+    restart: always
+    environment:
+      CATALOG_SERVICE_URL: http://catalog-service:5001
+      ORDER_SERVICE_URL: http://order-service:5002
+      PAYMENT_SERVICE_URL: http://payment-service:5003
+    ports:
+      - "5000:5000"
+    depends_on:
+      - catalog-service
+      - order-service
+      - payment-service
+    networks:
+      - ecom-net
+
+  # ==========================================
+  # VM 2: Product Catalog & Inventory + Mini-DB
+  # ==========================================
+  catalog-service:
+    build:
+      context: ./services/catalog_service
+      dockerfile: Dockerfile
+    container_name: ecom-catalog-service
+    restart: always
+    environment:
+      DB_PATH: /data/catalog.db
+    volumes:
+      - catalog_db_data:/data
+    expose:
+      - "5001"
+    networks:
+      - ecom-net
+
+  # ==========================================
+  # VM 3: Order Management + Mini-DB
+  # ==========================================
+  order-service:
+    build:
+      context: ./services/order_service
+      dockerfile: Dockerfile
+    container_name: ecom-order-service
+    restart: always
+    environment:
+      DB_PATH: /data/orders.db
+      CATALOG_SERVICE_URL: http://catalog-service:5001
+      PAYMENT_SERVICE_URL: http://payment-service:5003
+    volumes:
+      - order_db_data:/data
+    expose:
+      - "5002"
+    depends_on:
+      - catalog-service
+      - payment-service
+    networks:
+      - ecom-net
+
+  # ==========================================
+  # VM 4: Payment Ledger & DB Sync + Mini-DB
+  # ==========================================
+  payment-service:
+    build:
+      context: ./services/payment_sync_service
+      dockerfile: Dockerfile
+    container_name: ecom-payment-service
+    restart: always
+    environment:
+      DB_PATH: /data/payments.db
+    volumes:
+      - payment_db_data:/data
+    expose:
+      - "5003"
+    networks:
+      - ecom-net
+
+volumes:
+  catalog_db_data:
+  order_db_data:
+  payment_db_data:
+
+networks:
+  ecom-net:
+    driver: bridge

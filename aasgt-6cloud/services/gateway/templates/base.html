@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CloudStore - 4 Microservices & Mini-DBs Architecture{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Microservices Architecture Telemetry Header -->
+  <div class="topology-banner">
+    <div>
+      <strong>Cloud Practical 6.2:</strong> 4-Microservice Distributed E-Commerce Architecture
+    </div>
+    <div class="t-badges">
+      <div class="t-badge">
+        <span class="dot"></span>
+        <strong>VM1 Gateway (Public IP):</strong> {{ gateway_ip }}
+      </div>
+      <div class="t-badge">
+        <span class="dot"></span>
+        <strong>VM2 Catalog:</strong> {{ catalog_url }}
+      </div>
+      <div class="t-badge">
+        <span class="dot"></span>
+        <strong>VM3 Orders:</strong> {{ order_url }}
+      </div>
+      <div class="t-badge">
+        <span class="dot"></span>
+        <strong>VM4 Payments:</strong> {{ payment_url }}
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="{{ url_for('storefront') }}" class="logo">
+        🛒 Cloud<span>Store</span> <span style="font-size: 0.75rem; background: rgba(59,130,246,0.2); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-weight: normal;">4-VM Microservices</span>
+      </a>
+      <div class="nav-links">
+        <a href="{{ url_for('storefront') }}" class="btn btn-secondary">Products</a>
+        <a href="{{ url_for('orders') }}" class="btn btn-secondary">My Orders</a>
+        <a href="{{ url_for('topology') }}" class="btn btn-accent">⚡ Live Architecture & DB Sync</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Cloud Computing Practical 6.2 &bull; 4 Microservices across 4 VMs &bull; Mini Database per Service with Cross-DB Sync &bull; API Gateway Entry Point</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Food Recipe Hub - Cloud 2-Tier Architecture{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Cloud Architecture Telemetry Bar (Highlights VM1 -> VM2 Internal IP connectivity) -->
+  <div class="telemetry-banner">
+    <div>
+      <strong>Cloud Practical 6.1:</strong> 2-Tier Distributed Recipe Architecture
+    </div>
+    <div class="telemetry-badges">
+      <div class="t-badge">
+        <span class="status-dot"></span>
+        <strong>VM1 (App Host IP):</strong> {{ app_ip }}
+      </div>
+      <div class="t-badge">
+        <span class="status-dot {% if not db_connected %}error{% endif %}"></span>
+        <strong>VM2 (DB Host IP):</strong> {{ db_host }}:{{ db_port }} ({{ db_name }})
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="logo">
+        🍳 Recipe<span>Cloud</span>
+      </a>
+      <div class="nav-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Browse</a>
+        <a href="{{ url_for('add_recipe') }}" class="btn btn-primary">+ Add New Recipe</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Cloud Computing Practical 6.1 &bull; 2-Tier Multi-VM Architecture (VM1 App Container &harr; VM2 PostgreSQL DB Container via Internal IP)</p>
+  </footer>
+</body>
+</html>

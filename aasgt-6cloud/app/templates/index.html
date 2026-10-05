@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not db_connected %}
+  <div class="alert alert-danger" style="margin-bottom: 2rem;">
+    <h3>⚠️ Database Connection Failed</h3>
+    <p>Could not connect to Database VM at <code>{{ db_host }}:{{ db_port }}</code>.</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Error details:</strong> {{ error_msg }}</p>
+    <p style="margin-top: 0.5rem; font-size: 0.85rem;">Check your security group/firewall rules on VM2 to ensure port 5432 is open to VM1's internal IP.</p>
+  </div>
+{% endif %}
+
+<section class="search-section">
+  <form action="{{ url_for('index') }}" method="GET" class="search-form">
+    <input 
+      type="text" 
+      name="search" 
+      class="search-input" 
+      placeholder="Search delicious recipes by name or ingredient..." 
+      value="{{ search_query }}"
+    >
+    {% if selected_category %}
+      <input type="hidden" name="category" value="{{ selected_category }}">
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Search</button>
+    {% if search_query or selected_category %}
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Clear Filters</a>
+    {% endif %}
+  </form>
+
+  {% if categories %}
+    <div class="category-pills">
+      <a href="{{ url_for('index', search=search_query) }}" class="pill {% if not selected_category %}active{% endif %}">All Categories</a>
+      {% for cat in categories %}
+        <a href="{{ url_for('index', category=cat, search=search_query) }}" class="pill {% if selected_category == cat %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+{% if recipes %}
+  <div class="recipes-grid">
+    {% for recipe in recipes %}
+      <div class="recipe-card">
+        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" onerror="this.src='https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=600&q=80'">
+        <div class="recipe-card-body">
+          <div class="recipe-meta">
+            <span class="badge">{{ recipe.category }}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Serves {{ recipe.servings }}</span>
+          </div>
+          <h2 class="recipe-title">{{ recipe.title }}</h2>
+          <div class="recipe-info">
+            <span>⏱️ Prep: {{ recipe.prep_time }}m</span>
+            <span>🔥 Cook: {{ recipe.cook_time }}m</span>
+          </div>
+          <div class="recipe-card-footer">
+            <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Recipe &rarr;</a>
+            <form action="{{ url_for('delete_recipe', recipe_id=recipe.id) }}" method="POST" onsubmit="return confirm('Delete this recipe?');">
+              <button type="submit" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align: center; padding: 4rem 1rem; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-color);">
+    <h3 style="margin-bottom: 0.5rem;">No recipes found</h3>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Try adjusting your search criteria or add a brand new recipe to get started.</p>
+    <a href="{{ url_for('add_recipe') }}" class="btn btn-primary">+ Add First Recipe</a>
+  </div>
+{% endif %}
+{% endblock %}

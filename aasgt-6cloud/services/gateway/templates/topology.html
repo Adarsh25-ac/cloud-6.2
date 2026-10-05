@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800;">⚡ Live 4-VM Microservices Architecture & DB Sync</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem;">
+    Cloud Experiment 6.2: Isolated Mini-Databases per Microservice communicating across VPC Internal IPs.
+  </p>
+</div>
+
+<div class="topology-grid">
+  <!-- Node 1: API Gateway -->
+  <div class="node-card gateway">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <span style="font-weight: 700; color: var(--primary);">VM 1 &bull; API Gateway / UI</span>
+      <span class="status-badge status-confirmed">PUBLIC ENTRYPOINT</span>
+    </div>
+    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Storefront & Gateway</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Only VM accessible externally. Routes client traffic to internal microservices.
+    </p>
+    <div style="font-size: 0.8rem; background: #090d16; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+      <div><strong>Host IP:</strong> {{ gateway_ip }}</div>
+      <div><strong>Exposed Port:</strong> 5000 (Public)</div>
+      <div><strong>Role:</strong> Reverse Proxy & Web UI</div>
+    </div>
+  </div>
+
+  <!-- Node 2: Catalog Service -->
+  <div class="node-card catalog">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <span style="font-weight: 700; color: #10b981;">VM 2 &bull; Catalog Service</span>
+      <span class="status-badge {% if catalog_health.status == 'ONLINE' %}status-confirmed{% else %}status-processing{% endif %}">{{ catalog_health.status }}</span>
+    </div>
+    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Catalog & Inventory</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Manages stock, catalog, and receives inventory decrement sync events.
+    </p>
+    <div style="font-size: 0.8rem; background: #090d16; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+      <div><strong>Internal URL:</strong> {{ catalog_url }}</div>
+      <div><strong>Mini-DB:</strong> SQLite (<code>catalog.db</code>)</div>
+      <div><strong>Stock Records:</strong> {{ catalog_health.details.database.total_products if catalog_health.details else 'N/A' }}</div>
+    </div>
+  </div>
+
+  <!-- Node 3: Order Service -->
+  <div class="node-card order">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <span style="font-weight: 700; color: #f59e0b;">VM 3 &bull; Order Service</span>
+      <span class="status-badge {% if order_health.status == 'ONLINE' %}status-confirmed{% else %}status-processing{% endif %}">{{ order_health.status }}</span>
+    </div>
+    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Order Management</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Orchestrates 2-phase cross-database checkout sync with Catalog and Payment.
+    </p>
+    <div style="font-size: 0.8rem; background: #090d16; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+      <div><strong>Internal URL:</strong> {{ order_url }}</div>
+      <div><strong>Mini-DB:</strong> SQLite (<code>orders.db</code>)</div>
+      <div><strong>Total Orders:</strong> {{ order_health.details.database.total_orders if order_health.details else 'N/A' }}</div>
+    </div>
+  </div>
+
+  <!-- Node 4: Payment & Sync Service -->
+  <div class="node-card payment">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <span style="font-weight: 700; color: #8b5cf6;">VM 4 &bull; Payment Service</span>
+      <span class="status-badge {% if payment_health.status == 'ONLINE' %}status-confirmed{% else %}status-processing{% endif %}">{{ payment_health.status }}</span>
+    </div>
+    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Payment & Sync Ledger</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Maintains transaction ledger and cross-database reconciliation state.
+    </p>
+    <div style="font-size: 0.8rem; background: #090d16; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+      <div><strong>Internal URL:</strong> {{ payment_url }}</div>
+      <div><strong>Mini-DB:</strong> SQLite (<code>payments.db</code>)</div>
+      <div><strong>Ledger Txns:</strong> {{ payment_health.details.database.total_transactions if payment_health.details else 'N/A' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cross DB Sync Status Table -->
+<div style="margin-top: 2.5rem;">
+  <h2 style="font-size: 1.4rem; margin-bottom: 1rem;">🔄 Cross-Database Synchronization Ledger</h2>
+  <div class="table-card">
+    {% if sync_overview.recent_syncs %}
+      <table>
+        <thead>
+          <tr>
+            <th>Sync Record #</th>
+            <th>Source Microservice</th>
+            <th>Target Microservice</th>
+            <th>Entity Ref</th>
+            <th>Reconciliation Status</th>
+            <th>Timestamp (UTC)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sync in sync_overview.recent_syncs %}
+            <tr>
+              <td>#{{ sync.id }}</td>
+              <td><code>{{ sync.source }}</code></td>
+              <td><code>{{ sync.target }}</code></td>
+              <td>Order #{{ sync.entity_id }}</td>
+              <td><span class="status-badge status-confirmed">{{ sync.status }}</span></td>
+              <td style="color: var(--text-muted); font-size: 0.85rem;">{{ sync.created_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+        Place an order to see live multi-database synchronization events appear here!
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
